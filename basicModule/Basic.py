@@ -9,7 +9,7 @@
 
 
 class URLManger:  # url管理器
-    def __index__(self):
+    def __init__(self):
         self.url_basket = []  # 待处理URL列表
         self.url_trash = []  # 已爬取得
         self.recycle = False  # 是否回收URL（默认不回收）
