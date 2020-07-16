@@ -2,6 +2,10 @@
  基本模块
  Autchor ：shaqing
 """
+import time
+
+import requests
+from lxml import etree
 
 """
  URL管理器
@@ -14,12 +18,14 @@ class URLManger:  # url管理器
         self.url_trash = []  # 已爬取得
         self.recycle = False  # 是否回收URL（默认不回收）
 
-    def add(self):
-        pass
+    def add(self, url):
+        self.url_basket.append(url)
+        print("添加URL：" + url)
+        return self
 
     def call(self):  # call生成器用来生成url迭代
         for url in self.url_basket:
-            print("调用URL："+url)
+            print("调用URL：" + url)
             self.url_trash.append(url)
             yield url
 
@@ -33,17 +39,17 @@ class URLManger:  # url管理器
 
 
 class Downloader:
-    url_manager: URLManger = None
-    def __init__(self, **params):
+    def __init__(self, headers):
         self.container = []  # （数据容器）
-        self.mode = params['mode'] if "mode" in params else "HTML"  # （下载数据的模式json/html）
+        self.headers = headers
 
-    def request(self):  # （获取想要内容)
+    def request(self, url_manage: URLManger):  # （获取想要内容) 子类实现
+        for url in url_manage.call():
+            time.sleep(2)  # 休眠两秒
+            yield self.dispatcher(url)  # 执行下载调度器，获取响应内容
 
-        pass
-
-    def set_url_manager(self, url_manager: URLManger):  # 设置下载器的url_manager
-        self.url_manager = url_manager
+    def dispatcher(self, url) -> str:
+        return requests.get(url, headers=self.headers).content.decode()
 
 
 """
@@ -52,16 +58,30 @@ class Downloader:
 
 
 class Parser:
-    def __init__(self, conductor):
+    def __init__(self, mode, conductor):
         self.conductor = conductor  # 解析规则引导）
+        self.mode = mode  # 解析模式
+        self.parse_fns = {'HTML': self._html_parse, 'JSON': self._json_parse}
 
-    def parse(self):  # （解析数据）
+    def parse(self, rsp) -> dict:  # （解析数据）
+        return self.parse_fns[self.mode](rsp)
+
+    def _json_parse(self, rsp) -> dict:  # 子类实现
         pass
 
-    def json_parse(self):
-        pass
+    def _html_parse(self, rsp) -> dict:  # 基类实现
+        container = {}
+        html = etree.HTML(rsp)
+        for k in self.conductor:
+            print("将" + k + "数据放入容器")
+            container[k] = html.xpath(self.conductor[k])
+            print("riles: " + self.conductor[k])
+            print("Matching data: " + str(container[k]))
+        print("响应数据装载完成\n\n")
+        return container
 
-    def html_parse(self):
+    def add_mode_fns(self, mode, fn):  # 添加自定义解析方法
+        self.parse_fns[mode] = fn
         pass
 
 
@@ -75,19 +95,19 @@ class DataManager:
         self.mode = params['mode'] if 'mode' in params else 'csv'  # （数据保存模式）
         self.base_path = params['base_path']  # （文件基本路径）
         self.data_header = params['data_header']  # （数据表头）
-        self.mode_fns = {'csv': self.save_csv, 'db': self.save_db}
+        self.save_fns = {'csv': self._save_csv, 'db': self._save_db}
 
     def save(self):  # （保存数据）
-        self.mode_fns[self.mode]()
+        self.save_fns[self.mode]()
 
-    def save_csv(self):  # （以csv方式保存数据）
+    def _save_csv(self):  # (以csv方式保存数据) 子类实现
         pass
 
-    def save_db(self):  # （以数据库的形式保存数据）
+    def _save_db(self):  # (以数据库的形式保存数据) 子类实现
         pass
 
-    def add_mode_fns(self):  # （自定义保存数据的方式）
-        pass
+    def add_mode_fns(self, mode: str, fn):  # （自定义保存数据的方式）
+        self.save_fns[mode] = fn
 
 
 """
@@ -102,7 +122,37 @@ class Scheduler:
         self.parser: Parser = params['parser']  # 解析器实例
         self.data_manager: DataManager = params['data_manager']  # 数据管理器实例
 
-    def execute(self):
-        self.downloader.request(self.url_manager.call)
-        pass
+    def __init__(self):
+        print('init no params')
 
+    def execute(self):  # 调度程序的总执行入口
+        rsp_generator = self.downloader.request(self.url_manager)  # 获取响应数据的生成器
+        for rsp in rsp_generator:  # 迭代执行生成器
+            res = self.parser.parse(rsp)  # 解析每一次响应的数据
+            print(res)
+
+    def load(self, **params):
+        self.url_manager: URLManger = params['url_manager']  # URL管理器实例
+        self.downloader: Downloader = params['downloader']  # 下载器实例
+        self.parser: Parser = params['parser'] if 'parser' in params else None  # 解析器实例
+        self.data_manager: DataManager = params['data_manager'] if 'data_manager' in params else None  # 数据管理器实例
+        print("Scheduler load params successful")
+        return self
+
+
+if __name__ == '__main__':
+    url_manager = URLManger()
+    url_manager.add("http://car.bitauto.com/xuanchegongju/?p=8-12&page={}".format(1))\
+        .add("http://car.bitauto.com/xuanchegongju/?p=8-12&page={}".format(2))
+    donwloader = Downloader({
+        'ser-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                     'Chrome/75.0.3770.100 Safari/537.36'
+    })
+    parser = Parser('HTML', {'car_name': "//div[@class='search-result-list-item']/a/p[1]/text()",
+                             'car_price': "//div[@class='search-result-list-item']/a/p[2]/text()",
+                             'image': "//div[@class='search-result-list-item']/a/img/@src"})
+    Scheduler().load(
+        url_manager=url_manager,
+        downloader=donwloader,
+        parser=parser
+    ).execute()
