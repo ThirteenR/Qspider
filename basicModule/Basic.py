@@ -48,7 +48,7 @@ class Downloader:
             time.sleep(2)  # 休眠两秒
             yield self.dispatcher(url)  # 执行下载调度器，获取响应内容
 
-    def dispatcher(self, url) -> str:
+    def dispatcher(self, url) -> str:  # 子类可覆盖重新此方法，丰富请求方式
         return requests.get(url, headers=self.headers).content.decode()
 
 
