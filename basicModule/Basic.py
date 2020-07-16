@@ -17,10 +17,13 @@ class URLManger:  # url管理器
     def add(self):
         pass
 
-    def call(self):
-        pass
+    def call(self):  # call生成器用来生成url迭代
+        for url in self.url_basket:
+            print("调用URL："+url)
+            self.url_trash.append(url)
+            yield url
 
-    def recycling(self):
+    def recycling(self):  # 子类实现回收规则
         pass
 
 
@@ -30,6 +33,7 @@ class URLManger:  # url管理器
 
 
 class Downloader:
+    url_manager = None
     def __init__(self, **params):
         self.container = []  # （数据容器）
         self.mode = params['mode'] if "mode" in params else "HTML"  # （下载数据的模式json/html）
@@ -95,5 +99,6 @@ class Scheduler:
         self.data_manager: DataManager = params['data_manager']  # 数据管理器实例
 
     def execute(self):
+        self.downloader.request(self.url_manager.call)
         pass
 
