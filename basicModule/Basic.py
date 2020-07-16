@@ -33,13 +33,17 @@ class URLManger:  # url管理器
 
 
 class Downloader:
-    url_manager = None
+    url_manager: URLManger = None
     def __init__(self, **params):
         self.container = []  # （数据容器）
         self.mode = params['mode'] if "mode" in params else "HTML"  # （下载数据的模式json/html）
 
     def request(self):  # （获取想要内容)
+
         pass
+
+    def set_url_manager(self, url_manager: URLManger):  # 设置下载器的url_manager
+        self.url_manager = url_manager
 
 
 """
