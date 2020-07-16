@@ -33,6 +33,7 @@ class URLManger:  # url管理器
 
 
 class Downloader:
+    
     url_manager: URLManger = None
     def __init__(self, **params):
         self.container = []  # （数据容器）
