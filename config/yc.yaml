@@ -1,0 +1,49 @@
+#
+# http 需要爬取得网站的请求配置
+# data_mode 数据保存模式，目前为两种模式一种csv、database
+# data_header 爬取数据的字段列表
+# pg_count 需要爬取的页面总数
+# csv csv模式下的文件路径和文件名前缀
+# db database模式下的数据库配置信息，以及建表信息
+# xpath 解析HTML所要遵循的规则，
+#
+
+url: http://car.bitauto.com/xuanchegongju/?p=8-12&page={}
+pg_count: 3
+
+Downloader:
+  headers:
+    ser-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36
+
+
+
+DataManager:
+  # mode: db,csv
+  mode: csv
+  data_header: ['car_name', 'car_price','image']
+  base_path: data/yicar
+
+
+
+
+Parser:
+  mode: HTML
+  conductor:
+    car_name: //div[@class='search-result-list-item']/a/p[1]/text()
+    car_price: //div[@class='search-result-list-item']/a/p[2]/text()
+    image: //div[@class='search-result-list-item']/a/img/@src
+
+
+
+db:
+  info:
+    host: localhost
+    user: root
+    password: root
+    database: test
+    charset: utf8
+  table:
+    name: allcar
+    field:
+      car_name VARCHAR(20),car_price VARCHAR(100),image VARCHAR(1024)
+

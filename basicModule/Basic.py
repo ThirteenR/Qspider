@@ -93,8 +93,6 @@ class Parser:
 class DataManager:
     def __init__(self, **params):
         self.mode = params['mode'] if 'mode' in params else 'csv'  # （数据保存模式）
-        self.base_path = params['base_path']  # （文件基本路径）
-        self.data_header = params['data_header']  # （数据表头）
         self.save_fns = {'csv': self._save_csv, 'db': self._save_db}
 
     def save(self):  # （保存数据）
