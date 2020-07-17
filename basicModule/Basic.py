@@ -39,9 +39,9 @@ class URLManger:  # url管理器
 
 
 class Downloader:
-    def __init__(self, headers):
+    def __init__(self, params):
         self.container = []  # （数据容器）
-        self.headers = headers
+        self.headers = params['headers']
 
     def request(self, url_manage: URLManger):  # （获取想要内容) 子类实现
         for url in url_manage.call():
@@ -58,9 +58,9 @@ class Downloader:
 
 
 class Parser:
-    def __init__(self, mode, conductor):
-        self.conductor = conductor  # 解析规则引导）
-        self.mode = mode  # 解析模式
+    def __init__(self, params):
+        self.conductor = params['conductor']  # 解析规则引导）
+        self.mode = params['mode']  # 解析模式
         self.parse_fns = {'HTML': self._html_parse, 'JSON': self._json_parse}
 
     def parse(self, rsp) -> dict:  # （解析数据）
@@ -91,7 +91,7 @@ class Parser:
 
 
 class DataManager:
-    def __init__(self, **params):
+    def __init__(self, params):
         self.mode = params['mode'] if 'mode' in params else 'csv'  # （数据保存模式）
         self.save_fns = {'csv': self._save_csv, 'db': self._save_db}
 
@@ -136,21 +136,3 @@ class Scheduler:
         self.data_manager: DataManager = params['data_manager'] if 'data_manager' in params else None  # 数据管理器实例
         print("Scheduler load params successful")
         return self
-
-
-if __name__ == '__main__':
-    url_manager = URLManger()
-    url_manager.add("http://car.bitauto.com/xuanchegongju/?p=8-12&page={}".format(1))\
-        .add("http://car.bitauto.com/xuanchegongju/?p=8-12&page={}".format(2))
-    donwloader = Downloader({
-        'ser-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                     'Chrome/75.0.3770.100 Safari/537.36'
-    })
-    parser = Parser('HTML', {'car_name': "//div[@class='search-result-list-item']/a/p[1]/text()",
-                             'car_price': "//div[@class='search-result-list-item']/a/p[2]/text()",
-                             'image': "//div[@class='search-result-list-item']/a/img/@src"})
-    Scheduler().load(
-        url_manager=url_manager,
-        downloader=donwloader,
-        parser=parser
-    ).execute()
