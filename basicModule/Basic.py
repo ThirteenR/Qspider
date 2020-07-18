@@ -18,6 +18,10 @@ class URLManger:  # url管理器
         self.url_trash = []  # 已爬取得
         self.recycle = False  # 是否回收URL（默认不回收）
 
+    def use_page(self, url: str, pgcont: int):
+        for i in range(1, pgcont + 1):
+            self.add(url.format(i))
+
     def add(self, url):
         self.url_basket.append(url)
         print("添加URL：" + url)
@@ -91,21 +95,39 @@ class Parser:
 
 
 class DataManager:
-    def __init__(self, params):
-        self.mode = params['mode'] if 'mode' in params else 'csv'  # （数据保存模式）
-        self.save_fns = {'csv': self._save_csv, 'db': self._save_db}
+    data = []
+    rows = []
 
-    def save(self):  # （保存数据）
-        self.save_fns[self.mode]()
+    def load_data(self, data):
+        self.data = data
+        self._data_group()  # 数据分组
+        self.save(self.rows)
+        return self
 
-    def _save_csv(self):  # (以csv方式保存数据) 子类实现
+    def _data_group(self):
+        for container in self.data:
+            data_iterators = {}
+            for k in container:
+                print("创建迭代器:\t" + k)
+                data_iterators[k] = self._iterator(container[k])
+            self._set_rows(container, data_iterators)
+        print("所有迭代器创建完成\n")
+
+    def _iterator(self, content):
+        for i in range(len(content)):
+            yield str(content[i])
+
+    def _set_rows(self, container, data_iterators):
+        count = len(list(container.values())[0]) + 1
+        for i in range(1, count):
+            content = []  # 定义一个列表行
+            for name in container:
+                content.append(next(data_iterators[name]))  # 执行每列数据的迭代器，取出当前行所对应的值
+            self.rows.append(tuple(content))
+
+    def save(self, rows):  # （保存数据）
+        print("save mothed not be implemented ")
         pass
-
-    def _save_db(self):  # (以数据库的形式保存数据) 子类实现
-        pass
-
-    def add_mode_fns(self, mode: str, fn):  # （自定义保存数据的方式）
-        self.save_fns[mode] = fn
 
 
 """
@@ -125,9 +147,12 @@ class Scheduler:
 
     def execute(self):  # 调度程序的总执行入口
         rsp_generator = self.downloader.request(self.url_manager)  # 获取响应数据的生成器
+        data = []
         for rsp in rsp_generator:  # 迭代执行生成器
             res = self.parser.parse(rsp)  # 解析每一次响应的数据
             print(res)
+            data.append(res)
+        self.data_manager.load_data(data)
 
     def load(self, **params):
         self.url_manager: URLManger = params['url_manager']  # URL管理器实例

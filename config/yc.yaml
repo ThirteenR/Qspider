@@ -9,7 +9,7 @@
 #
 
 url: http://car.bitauto.com/xuanchegongju/?p=8-12&page={}
-pg_count: 3
+pg_count: 7
 
 Downloader:
   headers:
@@ -20,8 +20,12 @@ Downloader:
 DataManager:
   # mode: db,csv
   mode: csv
+  module: enrichModule.DataModel
+
+csv:
   data_header: ['car_name', 'car_price','image']
   base_path: data/yicar
+  counts: 121
 
 
 
@@ -36,6 +40,7 @@ Parser:
 
 
 db:
+  filednames: ['car_name', 'car_price','image']
   info:
     host: localhost
     user: root
@@ -44,6 +49,6 @@ db:
     charset: utf8
   table:
     name: allcar
-    field:
+    fields:
       car_name VARCHAR(20),car_price VARCHAR(100),image VARCHAR(1024)
 
