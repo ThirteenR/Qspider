@@ -1,54 +1,56 @@
 #
-# http 需要爬取得网站的请求配置
-# data_mode 数据保存模式，目前为两种模式一种csv、database
-# data_header 爬取数据的字段列表
-# pg_count 需要爬取的页面总数
-# csv csv模式下的文件路径和文件名前缀
-# db database模式下的数据库配置信息，以及建表信息
-# xpath 解析HTML所要遵循的规则，
+# URLManger 需要爬取得网站的请求配置
+# Downloader 下载器需要的相关配置
+# DataManager 数据保存模块需要的配置
+# Parser 解析器需要的配置
 #
-
-url: http://car.bitauto.com/xuanchegongju/?p=8-12&page={}
-pg_count: 7
+URLManger:
+  url: http://car.bitauto.com/xuanchegongju/?p=8-12&page={}
+  method: use_page
+  pg_count: 7 # 需要抓取的总页数
+  module: enrichModule.url # 自定义的管理器模块
+  classN: u # 类名
 
 Downloader:
   headers:
-    ser-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.100 Safari/537.36
+    ser-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0
 
 
 
 DataManager:
   # mode: db,csv
-  mode: csv
-  module: enrichModule.DataModel
-
-csv:
-  data_header: ['car_name', 'car_price','image']
-  base_path: data/yicar
-  counts: 121
-
-
-
+  mode: db
+  module: enrichModule.DataModel # 自定义模块
+  db:  # db模式的相关参数
+#    filednames: ['car_name', 'car_price','image']
+    info:
+      host: localhost
+      user: root
+      password: root
+      database: test
+      charset: utf8
+    table:
+      name: allcar
+      fields:
+        car_name:
+          VARCHAR(20)
+        car_price:
+          VARCHAR(100)
+        image:
+          VARCHAR(1024)
+  csv: # csv模式的相关参数
+    data_header: ['car_name', 'car_price','image']
+    base_path: data/yicar
+    counts: 121
 
 Parser:
-  mode: HTML
-  conductor:
+  mode: HTML # 解析数据的类型模式
+  conductor:  # 继续数据的规则
     car_name: //div[@class='search-result-list-item']/a/p[1]/text()
     car_price: //div[@class='search-result-list-item']/a/p[2]/text()
     image: //div[@class='search-result-list-item']/a/img/@src
 
 
 
-db:
-  filednames: ['car_name', 'car_price','image']
-  info:
-    host: localhost
-    user: root
-    password: root
-    database: test
-    charset: utf8
-  table:
-    name: allcar
-    fields:
-      car_name VARCHAR(20),car_price VARCHAR(100),image VARCHAR(1024)
+
 

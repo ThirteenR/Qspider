@@ -53,8 +53,6 @@ class db(DataManager):
     def __init__(self, params):
         self.connection = mc.connect(**params['info'])
         self.table = params['table']  # (操作的表）
-        self.filednames = params['filednames']
-        self.fnm = 0
 
     def close(self):
         self.connection.close()
@@ -62,18 +60,24 @@ class db(DataManager):
 
     def _create_table(self):
         try:
+            fields = []
+            for k in self.table['fields']:
+                fields.append(k + ' ' + self.table['fields'][k])
             print("creating table " + self.table['name'])
-            self.connection.cursor().execute("CREATE TABLE " + self.table['name'] + " (" + self.table['fields'] + ")")
+            self.connection.cursor().execute("CREATE TABLE " + self.table['name'] + " (" + ','.join(fields) + ")")
         except Exception as e:
             print(e)
 
     def save(self, rows):
         self._create_table()
-        fl = ",".join(self.filednames)
+        filednames = []
+        for k in self.table['fields']:
+            filednames.append(k)
+        fl = ",".join(filednames)
         cursor = self.connection.cursor()
         sql = "INSERT INTO " + self.table['name'] + "  VALUES ({})"
         print(sql)
-        sql = self._sql_format(len(self.filednames), sql)
+        sql = self._sql_format(len(filednames), sql)
         print(sql)
         cursor.executemany(sql, rows)
         self.connection.commit()

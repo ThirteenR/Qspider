@@ -18,9 +18,9 @@ class URLManger:  # url管理器
         self.url_trash = []  # 已爬取得
         self.recycle = False  # 是否回收URL（默认不回收）
 
-    def use_page(self, url: str, pgcont: int):
-        for i in range(1, pgcont + 1):
-            self.add(url.format(i))
+    def use_page(self, config):
+        for i in range(1, config['pg_count'] + 1):
+            self.add(config['url'].format(i))
 
     def add(self, url):
         self.url_basket.append(url)
@@ -50,9 +50,9 @@ class Downloader:
     def request(self, url_manage: URLManger):  # （获取想要内容) 子类实现
         for url in url_manage.call():
             time.sleep(2)  # 休眠两秒
-            yield self.dispatcher(url)  # 执行下载调度器，获取响应内容
+            yield self.method(url)  # 执行下载调度器，获取响应内容
 
-    def dispatcher(self, url) -> str:  # 子类可覆盖重新此方法，丰富请求方式
+    def method(self, url) -> str:  # 子类可覆盖重新此方法，丰富请求方式
         return requests.get(url, headers=self.headers).content.decode()
 
 

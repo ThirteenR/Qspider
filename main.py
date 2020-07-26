@@ -1,5 +1,9 @@
-from enrichModule import boot
-from enrichModule.configuration import config_loader
+from basicModule import boot
+from sys import argv
 
 if __name__ == "__main__":
-    boot.run('yc')
+    print(argv)
+    if len(argv) > 1:
+        boot.run(argv[1])
+    else:
+        boot.run('yc')
