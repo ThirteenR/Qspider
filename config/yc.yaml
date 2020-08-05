@@ -45,7 +45,7 @@ DataManager:
 
 Parser:
   mode: HTML # 解析数据的类型模式
-  conductor:  # 继续数据的规则
+  conductor:  # 解析数据的规则
     car_name: //div[@class='search-result-list-item']/a/p[1]/text()
     car_price: //div[@class='search-result-list-item']/a/p[2]/text()
     image: //div[@class='search-result-list-item']/a/img/@src

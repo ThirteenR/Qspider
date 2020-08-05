@@ -52,7 +52,7 @@ DataManager:
 
 Parser:
   mode: HTML # 解析数据的类型模式
-  conductor:  # 继续数据的规则
+  conductor:  # 解析数据的规则
     houseInfo: //div[@class="houseInfo"]/text()
     title: //div[@class="title"]/a/text()
     positionInfo: //div[@class="positionInfo"]/a/text()
